@@ -5,3 +5,4 @@ Got to know about CLUX
 Day 3
 Cumulative Layout Shift is a metric used by Google to evaluate the performance and user experience of a website. 
 learned pages in next js. there is huge nesting of pages 
+learned links and usePathname hook in next js.

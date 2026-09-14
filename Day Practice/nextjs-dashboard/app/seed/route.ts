@@ -1,8 +1,12 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL!, {
+  // Local Docker Postgres has SSL off; Vercel Postgres needs SSL.
+  // Only require SSL when the URL explicitly asks for it.
+  ssl: process.env.POSTGRES_URL?.includes('sslmode=require') ? 'require' : false,
+});
 
 async function seedUsers() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -103,14 +107,17 @@ async function seedRevenue() {
 
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [
-      seedUsers(),
-      seedCustomers(),
-      seedInvoices(),
-      seedRevenue(),
-    ]);
+    // Clean existing content so reseeding always starts fresh.
+    // Order + CASCADE handles the invoices -> customers dependency.
+    await sql`DROP TABLE IF EXISTS invoices, customers, users, revenue CASCADE`;
 
-    return Response.json({ message: 'Database seeded successfully' });
+    // Seed sequentially: customers must exist before invoices.
+    await seedUsers();
+    await seedCustomers();
+    await seedInvoices();
+    await seedRevenue();
+
+    return Response.json({ message: 'Database cleaned and seeded successfully' });
   } catch (error) {
     return Response.json({ error }, { status: 500 });
   }

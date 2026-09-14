@@ -9,7 +9,11 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL!, {
+  // Local Docker Postgres has SSL off; Vercel Postgres needs SSL.
+  // Only require SSL when the URL explicitly asks for it.
+  ssl: process.env.POSTGRES_URL?.includes('sslmode=require') ? 'require' : false,
+});
 
 export async function fetchRevenue() {
   try {

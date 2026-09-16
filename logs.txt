@@ -10,4 +10,6 @@ connected postgress database localy
 
 
 Day 4 
-ok
+setup docker on my linux machine
+start from LatestInvoice wala part
+for now this much only

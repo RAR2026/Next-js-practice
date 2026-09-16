@@ -10,3 +10,4 @@ connected postgress database localy
 
 
 Day 4 
+testing
